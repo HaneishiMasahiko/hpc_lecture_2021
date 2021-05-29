@@ -1,3 +1,9 @@
+# Student ID
+20M30634
+
+# Name
+羽石雅彦
+
 # hpc_lecture
 
 |          | Topic                                | Sample code               |

@@ -52,8 +52,8 @@ int main(int argc, char** argv) {
 	  }
 	  __m256 avec = _mm256_load_ps(a);
 	  __m256 bvec = _mm256_load_ps(b);
-    avec = _mm256_mul_ps(avec,bvec);
-    bvec = _mm256_permute2f128_ps(avec,avec,1);
+          avec = _mm256_mul_ps(avec,bvec);
+          bvec = _mm256_permute2f128_ps(avec,avec,1);
 	  avec = _mm256_add_ps(avec,bvec);
 	  avec = _mm256_hadd_ps(avec,avec);
 	  avec = _mm256_hadd_ps(avec,avec);

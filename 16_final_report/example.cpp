@@ -3,6 +3,8 @@
 #include <cmath>
 #include <vector>
 #include <chrono>
+
+#include <immintrin.h>
 using namespace std;
 
 int main(int argc, char** argv) {
@@ -39,10 +41,26 @@ int main(int argc, char** argv) {
   for(int irank=0; irank<size; irank++) {
     auto tic = chrono::steady_clock::now();
     offset = N/size*((rank+irank) % size);
+#pragma omp parallel for
     for (int i=0; i<N/size; i++)
       for (int j=0; j<N/size; j++)
-        for (int k=0; k<N; k++)
-          subC[N*i+j+offset] += subA[N*i+k] * subB[N/size*k+j];
+        for (int k=0; k<N/8; k++){
+	  float a[8],b[8],c[8];
+	  for (int l=0; l<8; l++){
+	    a[l] = subA[N*i+k*8+l];
+	    b[l] = subB[N/size*(k*8+l)+j];
+	  }
+	  __m256 avec = _mm256_load_ps(a);
+	  __m256 bvec = _mm256_load_ps(b);
+    avec = _mm256_mul_ps(avec,bvec);
+    bvec = _mm256_permute2f128_ps(avec,avec,1);
+	  avec = _mm256_add_ps(avec,bvec);
+	  avec = _mm256_hadd_ps(avec,avec);
+	  avec = _mm256_hadd_ps(avec,avec);
+	  
+	  _mm256_store_ps(c, avec);
+	  subC[N*i+j+offset] += c[0];
+	}
     auto toc = chrono::steady_clock::now();
     comp_time += chrono::duration<double>(toc - tic).count();
     MPI_Request request[2];
